@@ -1,10 +1,13 @@
 const fs = require('fs');
 const {ipcRenderer} = require('electron');
-const tf = require('@tensorflow/tfjs-node');
+const tf = require('@tensorflow/tfjs')
 const posenet = require('@tensorflow-models/posenet');
 const OSC = require('osc-js');
 
 var osc;
+
+var camW;
+var camH;
 
 const Stats = require('stats.js');
 var stats = new Stats();
@@ -84,7 +87,7 @@ function generateGUI(){
   div.style.color="white";
   div.style.fontFamily="monospace";
   var d = document.createElement("div");
-  d.innerHTML = "SETTINGS";
+  d.innerHTML = "设置";
   d.style.backgroundColor = "rgba(0,0,0,0.3)"
   div.appendChild(d);
 
@@ -221,7 +224,18 @@ function sendPosesXML(poses){
 }
 
 function sendPosesJSON(poses){
-  osc.send(new OSC.Message("/poses/json",JSON.stringify(poses)));
+  let keypoints=poses[0]["keypoints"];
+  let positions=[];
+  for(let i=0;i<keypoints.length;i++){
+    positions.push(keypoints[i]["position"]);
+  }
+  //console.log(keypoints);
+  let Tosend={
+    keypoints:positions,
+    width:camW,
+    height:camH
+  };
+  osc.send(new OSC.Message("/",JSON.stringify(Tosend)));
 }
 
 
@@ -232,12 +246,12 @@ async function estimateFrame() {
     openOSC();
   }
 
-  if (settings.audioHack && audio.paused){
-    audio.play();
-  }
-  if (!settings.audioHack && !audio.paused){
-    audio.pause();
-  }
+  // if (settings.audioHack && audio.paused){
+  //   audio.play();
+  // }
+  // if (!settings.audioHack && !audio.paused){
+  //   audio.pause();
+  // }
 
   var ictx = inputCanvas.getContext('2d');
   var dctx = debugCanvas.getContext('2d');
@@ -267,15 +281,16 @@ async function estimateFrame() {
     });
   }
 
-  if (settings.format == "XML"){
-    sendPosesXML(poses);
-  }else if (settings.format == "JSON"){
-    sendPosesJSON(poses);
-  }else if (settings.format == "ADDR"){
-    sendPosesADDR(poses);
-  }else if (settings.format == "ARR"){
-    sendPosesARR(poses);
-  }
+  // if (settings.format == "XML"){
+  //   sendPosesXML(poses);
+  // }else if (settings.format == "JSON"){
+  //   sendPosesJSON(poses);
+  // }else if (settings.format == "ADDR"){
+  //   sendPosesADDR(poses);
+  // }else if (settings.format == "ARR"){
+  //   sendPosesARR(poses);
+  // }
+  sendPosesJSON(poses);
 
   messageDiv.innerHTML = ["/","-","\\","|"][frameCount%4]+" Detected "+poses.length+" pose(s), sending to "
     +osc.options.plugin.options.send.host+":"
@@ -296,13 +311,14 @@ async function estimateFrame() {
   frameCount++;
 }
 
-messageDiv.innerHTML = "Initializing app..."
+messageDiv.innerHTML = "初始化app"
 camera.onloadeddata = function(){
-  messageDiv.innerHTML = "Camera loaded. Loading PoseNet..."
+  messageDiv.innerHTML = "相机已经载入，载入模型"
   var [w,h] = [camera.videoWidth, camera.videoHeight];
 
   console.log(w,h);
-
+  camW=w;
+  camH=h;
   inputCanvas.width = w;
   inputCanvas.height = h;
 
@@ -312,7 +328,7 @@ camera.onloadeddata = function(){
   ipcRenderer.send('resize', w, h);
 
   posenet.load(settings.poseNetConfig).then(function(_net){
-    messageDiv.innerHTML = "All loaded."
+    messageDiv.innerHTML = "全部载入完成"
     net = _net;
     setInterval(estimateFrame,5);
   });

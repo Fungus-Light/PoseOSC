@@ -1,14 +1,14 @@
 {
-  "multiplePoses":true,
+  "multiplePoses":false,
   "useTestImage":false,
-  "audioHack":true,
+  "audioHack":false,
   "host":"localhost",
   "port":"9527",
-  "format":"ARR",
+  "format":"JSON",
   "poseNetConig":{
     "architecture": "MobileNetV1",
-    "outputStride": 16,
-    "inputResolution": 257,
-    "multiplier": 0.75
+    "outputStride": 8,
+    "inputResolution": 128,
+    "multiplier": 0.50
   }
 }
