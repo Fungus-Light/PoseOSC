@@ -79,7 +79,7 @@ navigator.mediaDevices.getUserMedia({video: true})
   .then(function(stream) {
     camera.srcObject = stream;
   }).catch(function() {
-    alert('could not connect stream');
+    alert('无法连接到视频流');
 });
 
 function generateGUI(){
@@ -246,13 +246,6 @@ async function estimateFrame() {
     openOSC();
   }
 
-  // if (settings.audioHack && audio.paused){
-  //   audio.play();
-  // }
-  // if (!settings.audioHack && !audio.paused){
-  //   audio.pause();
-  // }
-
   var ictx = inputCanvas.getContext('2d');
   var dctx = debugCanvas.getContext('2d');
   
@@ -333,7 +326,7 @@ camera.onloadeddata = function(){
     setInterval(estimateFrame,5);
   });
 }
-
+//浮动窗口
 document.body.addEventListener("keypress", function(){
   if (event.key == 'x'){
     ipcRenderer.send('float');
